@@ -3,24 +3,41 @@
   (:use :numcl))
 (in-package :dezero)
 
-
-(defclass dz-variable ()
-  ((data :initarg :data)))
-
-
-(defclass dz-function ()
-  ((input)))
-
 (defgeneric call (callable-object &rest arguments))
 (defgeneric forward (self &rest arguments))
 (defgeneric backward (self &rest arguments))
+
+(defclass dz-variable ()
+  ((data :initarg :data)
+   (grad :initform nil)
+   (creator :initarg :creator
+	    :initform nil)))
+
+(defmethod set-creator ((self dz-variable) function)
+  (setf (slot-value self 'creator) function))
+
+(defmethod backward ((var dz-variable) &rest arguments)
+  (declare (ignore arguments))
+  (let ((f (slot-value var 'creator)))
+    (when f
+      (let ((x (slot-value f 'input)))
+	(setf (slot-value x 'grad)
+	      (backward f (slot-value var 'grad)))
+	(backward x)))))
+
+
+(defclass dz-function ()
+  ((input :initarg :input)
+   (output :initarg :output)))
 
 (defmethod call ((self dz-function) &rest arguments)
   (let* ((input (first arguments))
 	 (x (slot-value input 'data))
 	 (y (forward self x))
 	 (output (make-instance 'dz-variable :data y)))
+    (set-creator output self)
     (setf (slot-value self 'input) input)
+    (setf (slot-value self 'output) output)
     output))
 
 
