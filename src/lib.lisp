@@ -22,12 +22,17 @@
 
 (defmethod backward ((var variable) &rest arguments)
   (declare (ignore arguments))
-  (let ((f (slot-value var 'creator)))
-    (when f
-      (let ((x (slot-value f 'input)))
-	(setf (slot-value x 'grad)
-	      (backward f (slot-value var 'grad)))
-	(backward x)))))
+  (loop with funcs = (list (slot-value var 'creator))
+	until (null funcs)
+	do (let* ((f (pop funcs))
+		  (x (slot-value f 'input))
+		  (y (slot-value f 'output)))
+	     (setf (slot-value x 'grad)
+		   (backward f (slot-value y 'grad)))
+	     (when (slot-value x 'creator)
+	       (push (slot-value x 'creator)
+		     funcs)))))
+
 
 
 (defclass function ()
