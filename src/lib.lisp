@@ -43,7 +43,7 @@
     ;(format t "call y: ~a~%" y)
     (set-creator output self)
     (setf (slot-value self 'input) input)
-;    (setf (slot-value self 'output) output)
+    (setf (slot-value self 'output) output)
     output))
 
 
