@@ -56,8 +56,6 @@
 	 (x (slot-value input 'data))
 	 (y (forward self x))
 	 (output (make-instance 'variable :data y)))
-    ;(format t "call x: ~a~%" x)
-    ;(format t "call y: ~a~%" y)
     (set-creator output self)
     (setf (slot-value self 'input) input)
     (setf (slot-value self 'output) output)
@@ -70,19 +68,14 @@
 (defmethod forward ((self square) &rest arguments)
   (let* ((x (first arguments))
 	 (y (mgl-mat:make-mat (mgl-mat:mat-dimensions x))))
-    ;(format t "forward before square x: ~a~%" x)
     (mgl-mat:gemm! 1 x x 0 y)
-    ;(format t "forward after square y: ~a~%" y)
     y))
 
 (defmethod backward ((self square) &rest arguments)
   (let* ((gy (first arguments))
 	 (x (slot-value (slot-value self 'input) 'data))
 	 (y (mgl-mat:make-mat (mgl-mat:mat-dimensions x))))
-    ;(format t "backward before square x: ~a~%" x)
-    ;(format t "backward before square gy: ~a~%" gy)
     (mgl-mat:gemm! 2 x gy 0 y)
-    ;(format t "backward after square y: ~a~%" y)
     y))
 
 
@@ -90,10 +83,8 @@
   ())
 
 (defmethod forward ((self exp) &rest arguments)
-  ;(format t "forward before exp x: ~a~%" (first arguments))
   (let* ((x (mgl-mat:copy-mat (first arguments)))
 	 (y (mgl-mat:.exp! x)))
-    ;(format t "forward after exp y: ~a~%" y)
     y))
 
 (defmethod backward ((self exp) &rest arguments)
@@ -101,10 +92,8 @@
 	 (x (mgl-mat:copy-mat
 	     (slot-value (slot-value self 'input) 'data)))
 	 (gx (mgl-mat:make-mat (mgl-mat:mat-dimensions x))))
-    ;(format t "backward before exp x: ~a~%" x)
     (mgl-mat:.exp! x)
     (mgl-mat:gemm! 1 x gy 0 gx)
-    ;(format t "backward after exp gx: ~a~%" gx)
     gx))
 
 ;; (defclass composed-function (function)
