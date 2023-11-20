@@ -12,16 +12,28 @@
 (defgeneric backward (self &rest arguments))
 
 (defclass variable ()
-  ((data :initarg :data)
+  ((data :initarg :data
+	 :initform (error "supply data for variable"))
    (grad :initform nil)
    (creator :initarg :creator
 	    :initform nil)))
+
+(defmethod initialize-instance :after ((var variable) &key)
+  (let ((data (slot-value var 'data)))
+	(when data
+	  (unless (typep data 'mgl-mat:mat)
+	    (error (make-condition 'type-error
+				   :datum data
+				   :expected-type 'mgl-mat:mat))))))
 
 (defmethod set-creator ((self variable) function)
   (setf (slot-value self 'creator) function))
 
 (defmethod backward ((var variable) &rest arguments)
   (declare (ignore arguments))
+  (unless (slot-value var 'grad)
+    (setf (slot-value var 'grad)
+	  (ones-like (slot-value var 'data))))
   (loop with funcs = (list (slot-value var 'creator))
 	until (null funcs)
 	do (let* ((f (pop funcs))
@@ -118,3 +130,20 @@
 ;; 	 )
 ;;     (/ (- (slot-value y1 'data) (slot-value y0 'data))
 ;;        (* 2 eps))))
+
+(defun make-scalar (x)
+  (mgl-mat:make-mat '(1 1) :initial-element x))
+
+(defun make-variable (x)
+  (make-instance 'variable
+		 :data x))
+
+(defun square (x)
+  (call (make-instance 'square) x))
+
+(defun exp (x)
+  (call (make-instance 'exp) x))
+
+(defun ones-like (x)
+  (mgl-mat:make-mat (mgl-mat:mat-dimensions x)
+		    :initial-element 1))

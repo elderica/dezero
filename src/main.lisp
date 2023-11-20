@@ -82,3 +82,17 @@
 			  :initial-element 1.0))
   (backward y)
   (slot-value x 'grad))
+
+(let* ((x (make-variable
+	   (make-scalar 0.5)))
+       (y (square (exp (square x)))))
+  (setf (slot-value y 'grad)
+	(make-scalar 1.0))
+  (backward y)
+  (slot-value x 'grad))
+
+(let* ((x (make-variable
+	   (make-scalar 0.5)))
+       (y (square (exp (square x)))))
+  (backward y)
+  (slot-value x 'grad))
